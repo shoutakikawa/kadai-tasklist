@@ -1,4 +1,7 @@
 class TasksController < ApplicationController
+  before_action :require_user_logged_in
+  before_action :correct_user, only: [:destroy]
+  
   def index
     @tasks = Task.all.page(params[:page])
   end
@@ -12,7 +15,7 @@ class TasksController < ApplicationController
   end
 
   def create
-    @task = Task.new(task_params)
+    @task = current_user.tasks.build(task_params)
 
     if @task.save
       flash[:success] = 'Task が正常に投稿されました'
@@ -35,16 +38,15 @@ class TasksController < ApplicationController
       redirect_to @task
     else
       flash.now[:danger] = 'Task は更新されませんでした'
-      render :edit
+      redirect_to root_path
     end
   end
 
   def destroy
     @task = Task.find(params[:id])
     @task.destroy
-
     flash[:success] = 'Task は正常に削除されました'
-    redirect_to tasks_url
+    redirect_to root_path
   end
   
     private
@@ -52,6 +54,15 @@ class TasksController < ApplicationController
   # Strong Parameter
   def task_params
     params.require(:task).permit(:content, :status)
+  end
+
+  
+  def correct_user
+    @task = current_user.tasks.find_by(id: params[:id])
+    unless @task
+      flash.now[:danger] = '自分以外のユーザのタスクは削除できません'
+      redirect_to root_path
+    end
   end
   
 end
