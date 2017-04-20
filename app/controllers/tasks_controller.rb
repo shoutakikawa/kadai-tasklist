@@ -60,7 +60,7 @@ class TasksController < ApplicationController
   def correct_user
     @task = current_user.tasks.find_by(id: params[:id])
     unless @task
-      flash.now[:danger] = '自分以外のユーザのタスクは削除できません'
+      flash.now[:danger] = 'error'
       redirect_to root_path
     end
   end
